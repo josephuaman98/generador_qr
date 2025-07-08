@@ -80,6 +80,10 @@ Route::group(['middleware' => ['auth']], function () {
     // GENERADOR QR
     Route::get('/generador', [GeneradorController::class, 'index'])->name('generador.index');
     Route::get('generador/create', [GeneradorController::class, 'create'])->name('generador.create');
+    Route::post('generador/store', [GeneradorController::class, 'store'])->name('generador.store');
+    Route::get('generador/edit/{id}', [GeneradorController::class, 'edit'])->name('generador.edit');
+    Route::put('generador/{id}', [GeneradorController::class, 'update'])->name('generador.update');
+    Route::delete('generador/{id}', [GeneradorController::class, 'destroy'])->name('generador.destroy');
 
 
 
