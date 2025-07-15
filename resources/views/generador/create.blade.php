@@ -64,7 +64,6 @@
                                             <div class="mb-1">
                                                 <label class="form-label" for="estado">Estado</label>
                                                 <select name="estado" id="estado" class="form-select" required>
-                                                    <option value="" disabled selected>Seleccione el estado</option>
                                                     <option value="1">Activo</option>
                                                     <option value="0">Inactivo</option>
                                                 </select>

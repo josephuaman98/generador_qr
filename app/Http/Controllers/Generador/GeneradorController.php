@@ -15,12 +15,15 @@ use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Imagick;
+use ImagickDraw; // ✅ AGREGA ESTA LÍNEA
+
 
 
 
 class GeneradorController extends Controller
 {
-    
+
     public function index(Request $request)
     {
         $userId = auth()->id();
@@ -30,7 +33,7 @@ class GeneradorController extends Controller
         $direction = $request->input('direction', 'asc');
 
         $query = "
-            SELECT 
+            SELECT
                 g.id,
                 g.imagen_ruta_qr,
                 g.link_qr,
@@ -40,7 +43,7 @@ class GeneradorController extends Controller
                 u.name as usuario_nombre
             FROM generadors g
             INNER JOIN users u ON u.id = g.user_id
-            WHERE g.user_id = ?
+            WHERE g.user_id = ? and g.estado = 1
         ";
 
         $params = [$userId];
@@ -77,67 +80,75 @@ class GeneradorController extends Controller
         return view('generador.create');
     }
 
-    
-    
-    public function store(Request $request)
-    {
-        // Validación
-        $request->validate([
-            'link_qr' => 'required|url',
-            'descripcion' => 'nullable|string',
-            'estado' => 'required|string',
-        ]);
 
-        // Generar QR con BaconQrCode
-        $renderer = new ImageRenderer(
-            new RendererStyle(300),
-            new SvgImageBackEnd()
-        );
 
-        $writer = new Writer($renderer);
-        $qrSvg = $writer->writeString($request->link_qr); // SVG como string
+public function store(Request $request)
+{
+    // 1. Validación
+    $request->validate([
+        'link_qr' => 'required|url',
+        'descripcion' => 'nullable|string',
+        'estado' => 'required|boolean',
+    ]);
 
-        // Guardar el archivo SVG en storage
-        $qrFileName = 'qr-codes/' . Str::uuid() . '.svg';
-        Storage::disk('public')->put($qrFileName, $qrSvg);
+    // 2. Generar QR en PNG (blob)
+    $qrImage = \QrCode::format('png')
+        ->size(500)
+        ->margin(2)
+        ->generate($request->link_qr);
 
-        // Obtener la URL pública
-        $qrPublicUrl = Storage::url($qrFileName); // /storage/qr-codes/xxxx.svg
+    // 3. Crear QR como objeto Imagick
+    $qr = new Imagick();
+    $qr->readImageBlob($qrImage);
+    $qr->setImageColorspace(Imagick::COLORSPACE_RGB);
+    $qr->setImageType(Imagick::IMGTYPE_TRUECOLOR);
 
-        // Guardar en la base de datos
-        Generador::create([
-            'imagen_ruta_qr' => $qrPublicUrl,
-            'link_qr' => $request->link_qr,
-            'descripcion' => $request->descripcion,
-            'user_id' => auth()->id(),
-            'estado' => $request->estado,
-        ]);
-
-        return redirect()->route('generador.index')
-                        ->with('success', 'QR generado exitosamente');
+    // 4. Cargar logo (a color)
+    $logoPath = public_path('images/imagenes/logo_muni_lavictoria2.png');
+    if (!file_exists($logoPath)) {
+        return back()->with('error', 'Logo no encontrado.');
     }
 
-    
-    public function show(string $id)
-    {
-        //
-    }
+    $logo = new Imagick($logoPath);
+    $logo->setImageColorspace(Imagick::COLORSPACE_RGB);
+    $logo->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 
-    
-    public function edit(string $id)
-    {
-        //
-    }
+    // 5. Redimensionar logo (20% del tamaño del QR)
+    $qrWidth = $qr->getImageWidth();
+    $qrHeight = $qr->getImageHeight();
+    $logoSize = (int)($qrWidth * 0.2);
+    $logo->resizeImage($logoSize, $logoSize, Imagick::FILTER_LANCZOS, 1, true);
 
-   
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+    // 6. Crear espacio blanco para el logo
+    $x = (int)(($qrWidth - $logoSize) / 2);
+    $y = (int)(($qrHeight - $logoSize) / 2);
 
-    
-    public function destroy(string $id)
-    {
-        //
-    }
+    $draw = new ImagickDraw();
+    $draw->setFillColor('white');
+    $draw->rectangle($x, $y, $x + $logoSize, $y + $logoSize);
+    $qr->drawImage($draw);
+
+    // 7. Colocar el logo en el centro del espacio
+    $qr->compositeImage($logo, Imagick::COMPOSITE_OVER, $x, $y);
+
+    // 8. Guardar QR generado
+    $filename = 'qr-codes/' . Str::uuid() . '.png';
+    Storage::disk('public')->makeDirectory('qr-codes');
+    Storage::disk('public')->put($filename, $qr->getImageBlob());
+
+    // 9. Obtener URL pública
+    $qrPublicUrl = Storage::url($filename);
+
+    // 10. Guardar en la base de datos
+    Generador::create([
+        'imagen_ruta_qr' => $qrPublicUrl,
+        'link_qr' => $request->link_qr,
+        'descripcion' => $request->descripcion,
+        'user_id' => auth()->id(),
+        'estado' => $request->estado,
+    ]);
+
+    return redirect()->route('generador.index')
+        ->with('success', 'QR generado exitosamente con logo a color centrado y sin pérdida de escaneabilidad.');
+}
 }

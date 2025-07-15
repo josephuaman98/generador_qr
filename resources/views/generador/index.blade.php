@@ -58,7 +58,7 @@
                             </thead>
                             <tbody id="table-container">
                                 @include('generador.index_table', [
-                                    'qrs' => $paginatedItems 
+                                    'qrs' => $paginatedItems
                                 ])
                             </tbody>
                         </table>

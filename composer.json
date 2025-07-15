@@ -9,6 +9,7 @@
         "ext-gd": "*",
         "barryvdh/laravel-dompdf": "^3.0",
         "beyondcode/laravel-websockets": "^1.14",
+        "chillerlan/php-qrcode": "^5.0",
         "guzzlehttp/guzzle": "^7.9",
         "intervention/image": "^3.2",
         "kwn/number-to-words": "^2.10",
