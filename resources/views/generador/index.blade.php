@@ -31,9 +31,9 @@
                             <div class="row mb-3">
                                 <div class="col-md-1">
                                     <select name="perPage" id="perPage-select" class="form-control">
-                                        <option value="5">5</option>
-                                        <option value="10">10</option>
-                                        <option value="15">15</option>
+                                        <option value="5" {{ $perPage == 5 ? 'selected' : '' }}>5</option>
+                                        <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                                        <option value="15" {{ $perPage == 15 ? 'selected' : '' }}>15</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4 ms-auto">
@@ -77,38 +77,66 @@
 
 @section('scripts')
 <script>
-    function fetchGeneradores(search, page, perPage, sort, direction) {
+    $(document).ready(function() {
+    // Establecer valor inicial del select
+    $('#perPage-select').val('{{ $perPage }}');
+
+    function fetchGeneradores(page = 1) {
+        const params = {
+            search: $('#search-input').val(),
+            perPage: $('#perPage-select').val(),
+            sort: '{{ $sort }}',
+            direction: '{{ $direction }}',
+            page: page
+        };
+
         $.ajax({
             url: '{{ route('generador.index') }}',
-            method: 'GET',
-            data: { search, page, perPage, sort, direction },
-            success: function(data) {
-                $('#table-container').html(data.html);
-                $('#pagination-links').html(data.pagination);
+            type: 'GET',
+            data: params,
+            success: function(response) {
+                $('#table-container').html(response.html);
+                $('#pagination-links').html(response.pagination);
+                // Mantener selección en el select
+                $('#perPage-select').val(params.perPage);
+                // Actualizar URL en el navegador
+                updateUrl(params);
             },
-            error: function(error) {
-                console.error(error);
+            error: function(xhr) {
+                console.error(xhr.responseText);
             }
         });
     }
 
-    $(document).ready(function() {
-        const sort = '{{ $sort }}';
-        const direction = '{{ $direction }}';
-
-        $('#search-input').on('keyup', _.debounce(function() {
-            fetchGeneradores(this.value, null, $('#perPage-select').val(), sort, direction);
-        }, 300));
-
-        $('#perPage-select').on('change', function() {
-            fetchGeneradores($('#search-input').val(), null, $(this).val(), sort, direction);
+    function updateUrl(params) {
+        let url = new URL(window.location.href);
+        Object.keys(params).forEach(key => {
+            if (params[key]) {
+                url.searchParams.set(key, params[key]);
+            } else {
+                url.searchParams.delete(key);
+            }
         });
+        window.history.pushState({}, '', url);
+    }
 
-        $(document).on('click', '#pagination-links a', function(e) {
-            e.preventDefault();
-            const page = $(this).attr('href').split('page=')[1];
-            fetchGeneradores($('#search-input').val(), page, $('#perPage-select').val(), sort, direction);
-        });
+    // Evento de búsqueda
+    $('#search-input').on('keyup', _.debounce(function() {
+        fetchGeneradores(1); // Resetear a página 1 al buscar
+    }, 300));
+
+    // Evento de cambio en items por página
+    $('#perPage-select').on('change', function() {
+        fetchGeneradores(1); // Resetear a página 1 al cambiar
     });
+
+    // Evento de paginación
+    $(document).on('click', '#pagination-links a', function(e) {
+        e.preventDefault();
+        const url = new URL($(this).attr('href'));
+        const page = url.searchParams.get('page');
+        fetchGeneradores(page);
+    });
+});
 </script>
 @endsection

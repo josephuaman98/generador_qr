@@ -1,8 +1,8 @@
-@foreach ($qrs as $qr)
+@foreach ($paginatedItems as $qr)
     <tr>
         <td>{{ $qr->id }}</td>
         <td><img src="{{ asset($qr->imagen_ruta_qr) }}" alt="QR" width="60"></td>
-        <td><a href="{{ $qr->link_qr }}" target="_blank">{{ $qr->link_qr }}</a></td>
+        <td><a href="{{ $qr->link_qr }}" target="_blank">{{ Str::limit($qr->link_qr, 30) }}</a></td>
         <td>{{ $qr->descripcion }}</td>
         <td>{{ $qr->usuario_nombre ?? 'Sin nombre' }}</td>
         <td>
@@ -18,3 +18,9 @@
         </td>
     </tr>
 @endforeach
+
+@if($paginatedItems->isEmpty())
+    <tr>
+        <td colspan="8" class="text-center">No se encontraron resultados</td>
+    </tr>
+@endif
