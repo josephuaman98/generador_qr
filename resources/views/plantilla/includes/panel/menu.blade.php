@@ -62,8 +62,17 @@
                         <a class="d-flex align-items-center" href="{{ url('/generador') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Roles">QR</span></a>
                     </li>
                 </ul>
+            </li>
+            <li class="nav-item">
+                <a class="d-flex align-items-center" href="#"><i data-feather='file-text'></i><span class="menu-title text-truncate" data-i18n="Roles &amp; Permission">Credencial de Ide.</span></a>
+                <ul class="menu-content">
+                    <li>
+                        <a class="d-flex align-items-center" href="{{ url('/credencial') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Roles">Credencial</span></a>
+                    </li>
+                </ul>
 
             </li>
+             
         </ul>
     </div>
 </div>

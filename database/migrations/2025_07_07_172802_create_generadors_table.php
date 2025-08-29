@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('generadors', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('area_id')->constrained('areas');
             $table->string('imagen_ruta_qr');
             $table->text('link_qr');
             $table->text('descripcion')->nullable();
             $table->string('user_id');
             $table->string('estado');
+            $table->string('con_logo');
             $table->timestamps(6);  //fecha_creacion
         });
     }

@@ -1,6 +1,6 @@
 @foreach ($paginatedItems as $qr)
     <tr>
-        <td>{{ $qr->id }}</td>
+        <td>{{ $loop->iteration }}</td> 
         <td><img src="{{ asset($qr->imagen_ruta_qr) }}" alt="QR" width="60"></td>
         <td><a href="{{ $qr->link_qr }}" target="_blank">{{ Str::limit($qr->link_qr, 30) }}</a></td>
         <td>{{ $qr->descripcion }}</td>
@@ -12,7 +12,11 @@
         </td>
         <td>{{ \Carbon\Carbon::parse($qr->created_at)->format('d/m/Y H:i') }}</td>
         <td>
-            <a href="{{ asset($qr->imagen_ruta_qr) }}" download class="btn btn-sm btn-outline-primary" title="Descargar QR">
+            <!-- Botón de descarga con nombre personalizado -->
+            <a href="{{ asset($qr->imagen_ruta_qr) }}" 
+               download="{{ $qr->descripcion ? \Illuminate\Support\Str::slug($qr->descripcion) : 'qr-sin-nombre' }}" 
+               class="btn btn-sm btn-outline-primary" 
+               title="Descargar QR">
                 <i class="fas fa-download"></i>
             </a>
         </td>

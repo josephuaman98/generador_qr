@@ -8,30 +8,20 @@ use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\SocketController;
+use App\Http\Controllers\Restaurante\RestauranteController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;;
-
+use App\Http\Controllers\Restaurante\VentaController;
 
 use App\Http\Controllers\Generador\GeneradorController;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
-
-
-
+use App\Http\Controllers\Credencial\CredencialController;
+use App\Http\Controllers\Generador\Vista\VistaController;
+// pdf
+use Illuminate\Support\Facades\Storage;
 
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified']);
@@ -41,6 +31,32 @@ Route::get('/login', [AuthController::class, 'loginFiscalizador']);
 
 // Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified']);
 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+// QR DE COMERCIO INFORMAL - CREDENCIAL
+Route::get('/credencial/qr/{id_socio}', [CredencialController::class, 'generarLinkTemporal']);
+Route::get('/credencial/token/{token}', [CredencialController::class, 'showPorToken']);
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// - - - - - - - - - - - - - - -  PDF ENCRIPTADO - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Route::get('/ver-pdf/{file}', function ($file) {
+    if (! request()->hasValidSignature()) {
+        abort(403, 'El enlace expiró o no es válido.');
+    }
+
+    if (!Storage::disk('private')->exists($file)) {
+        abort(404, 'Archivo no encontrado');
+    }
+
+    return Storage::disk('private')->response($file);
+
+})->where('file', '.*')->name('pdf.ver');
+
+Route::get('/credencial/generar-link', [CredencialController::class, 'generarLink'])
+    ->name('credencial.generarLink');
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Route::group(['middleware' => ['auth']], function () {
 
@@ -57,14 +73,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::resource('roles', RolController::class);
 
-    // Route::get('/roles', [RolController::class, 'index'])->name('roles.index');
-    // Route::get('/roles/create', [RolController::class, 'create'])->name('roles.create');
-    // Route::post('/roles', [RolController::class, 'store'])->name('roles.store');
-    // Route::get('/roles/{role}', [RolController::class, 'show'])->name('roles.show');
-    // Route::get('/roles/{role}/edit', [RolController::class, 'edit'])->name('roles.edit');
-    // Route::put('/roles/{role}', [RolController::class, 'update'])->name('roles.update');
-    // Route::delete('/roles/{role}', [RolController::class, 'destroy'])->name('roles.destroy');
-
+    
 
     Route::resource('usuarios', UsuarioController::class);
     Route::put('usuarios/{usuario}/update-permissions', [UsuarioController::class, 'updatePermissions'])->name('usuarios.updatePermissions');
@@ -85,16 +94,16 @@ Route::group(['middleware' => ['auth']], function () {
     Route::put('generador/{id}', [GeneradorController::class, 'update'])->name('generador.update');
     Route::delete('generador/{id}', [GeneradorController::class, 'destroy'])->name('generador.destroy');
 
+    // VISTAS GENERADOR
+    Route::get('/vista/parque-antonio-de-la-guerra', [VistaController::class, 'parqueAntonioDeLaGuerra'])->name('vistas.parque-antonio-de-la-guerra');
 
 
+    // Credenciales
+    Route::get('/credencial', [CredencialController::class, 'index'])->name('credencial.index');
+    Route::get('/credencial/pdf', [CredencialController::class, 'pdf'])->name('credencial.pdf');
+    
+    Route::get('/pdf', [CredencialController::class, 'pdf'])->name('credenciales.pdf');
 
-    // WEB SOCKET
-    Route::get('/socket', [SocketController::class, 'index'])->name('socket.index');
-    Route::get('/socket/create', [SocketController::class, 'create'])->name('socket.create');
-    Route::post('/socket/store', [SocketController::class, 'store'])->name('socket.store');
-
-    Route::get('/socket/edit/{id}', [SocketController::class, 'edit'])->name('socket.edit');
-    Route::put('/socket/{id}', [SocketController::class, 'update'])->name('socket.update');
 
 });
 
@@ -102,3 +111,4 @@ Route::group(['middleware' => ['auth']], function () {
 
 
 require __DIR__ . '/auth.php';
+

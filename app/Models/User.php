@@ -10,16 +10,15 @@ use Laravel\Sanctum\HasApiTokens;
 
 //Agregamos spatie
 use Spatie\Permission\Traits\HasRoles;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    
+    // protected $connection = 'mysql';
+
     protected $fillable = [
         'name',
         'apellido_paterno',
@@ -52,10 +51,19 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    // public function notificacion()
-    // {
-    //     return $this->belongsTo(Notificacion::class);
-    // }
+    
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
+
+
 
 
 }

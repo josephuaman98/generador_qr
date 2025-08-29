@@ -43,7 +43,7 @@ return [
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
 
-        'mysql' => [
+            'mysql' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
@@ -63,34 +63,21 @@ return [
             ]) : [],
         ],
 
-        'pgsql' => [
-            'driver' => 'pgsql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
-            'charset' => 'utf8',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'search_path' => 'public',
-            'sslmode' => 'prefer',
-        ],
-
-        'sqlsrv' => [
+        // ==============================
+        // CONEXIÓN SQL SERVER SECUNDARIA
+        // ==============================
+        'sqlsrv_sigmum' => [
             'driver' => 'sqlsrv',
-            'url' => env('DATABASE_URL2'),
-            'host' => env('DB_HOST2', '172.16.1.97'),
-            'port' => env('DB_PORT2', '1433'),
-            'database' => env('DB_DATABASE2', 'bd_cloud_10122024'),
-            'username' => env('DB_USERNAME2', 'jjhuaman'),
-            'password' => env('DB_PASSWORD2', 'Asdfgh@2024'),
+            'host' => env('DB_SQLSRV_HOST', '172.16.201.24'),
+            'port' => env('DB_SQLSRV_PORT', '1433'),
+            'database' => env('DB_SQLSRV_DATABASE', 'SIGMUN'),
+            'username' => env('DB_SQLSRV_USERNAME', 'sa'),
+            'password' => env('DB_SQLSRV_PASSWORD', ''),
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
-            'encrypt' => env('DB_ENCRYPT', 'yes'),
-            'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
+            'encrypt' => env('DB_SQLSRV_ENCRYPT', 'yes'),
+            'trust_server_certificate' => env('DB_SQLSRV_TRUST_SERVER_CERTIFICATE', true),
         ],
 
         // 'sqlsrv_satrim' => [

@@ -48,6 +48,18 @@
 
                                         <div class="col-md-12">
                                             <div class="mb-1">
+                                                <label class="form-label" for="area_id">Área</label>
+                                                <select name="area_id" id="area_id" class="form-select" required>
+                                                    <option value="" disabled selected>Seleccione un área</option>
+                                                    @foreach ($areas as $area)
+                                                        <option value="{{ $area->id }}">{{ $area->nombre }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="mb-1">
                                                 <label class="form-label" for="link_qr">Enlace para el QR</label>
                                                 <input type="url" id="link_qr" name="link_qr" class="form-control" placeholder="https://ejemplo.com" required>
                                             </div>
@@ -57,6 +69,17 @@
                                             <div class="mb-1">
                                                 <label class="form-label" for="descripcion">Descripción (opcional)</label>
                                                 <textarea id="descripcion" name="descripcion" class="form-control" rows="3" placeholder="Descripción breve del QR"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <!-- NUEVA OPCIÓN: CON LOGO O SIN LOGO -->
+                                        <div class="col-md-12">
+                                            <div class="mb-1">
+                                                <label class="form-label" for="con_logo">¿Incluir logo municipal?</label>
+                                                <select name="con_logo" id="con_logo" class="form-select" required>
+                                                    <option value="1">Sí</option>
+                                                    <option value="0">No</option>
+                                                </select>
                                             </div>
                                         </div>
 

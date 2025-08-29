@@ -122,100 +122,40 @@ class UsuarioController extends Controller
 
     public function store(Request $request)
     {
-        
-        try{
-
-            
-            try {
-                        $seguridad_usuario_id = DB::connection('sqlsrv')->select('SELECT TOP 1 usuario_id FROM SEGURIDAD.USUARIO ORDER BY usuario_id DESC');
-                    } catch (QueryException $e) {
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => 'Error en la consulta a la base de datos.',
-                            'details' => $e->getMessage() // Quitar en producción si no es necesario.
-                        ], 500);
-                    } catch (PDOException $e) {
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => 'No se pudo conectar a la base de datos.',
-                            'details' => $e->getMessage() // Quitar en producción si no es necesario.
-                        ], 500);
-                    } catch (\Throwable $th) {
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => 'Ocurrió un error inesperado.',
-                            'details' => $th->getMessage() // Quitar en producción si no es necesario.
-                        ], 500);
-                    }
-
-        
-        $seguridad_usuario_id = $seguridad_usuario_id[0]->usuario_id;
-        $seguridad_usuario_id +=1;    
-
-        $this->validate($request, [
-            'name' => 'required',   
-            'apellido_paterno' => 'required',
-            'apellido_materno' => 'required',
-            'dni' => 'required',
-            'user_name' => 'required|unique:users,user_name',
-            'password' => 'required|same:confirm-password',
-            'roles' => 'required'
-        ]);
-
-        // Crear una nueva instancia de User
-        $user = new User();
-        $user->name = $request->input('name');
-        $user->apellido_paterno = $request->input('apellido_paterno');
-        $user->apellido_materno = $request->input('apellido_materno');
-        $user->dni = $request->input('dni');
-        $user->user_name = $request->input('user_name');
-        $user->password = Hash::make($request->input('password'));
-        $user->user_id = $seguridad_usuario_id;
-        
-        // Guardar el usuario en la base de datos
-        $user->save();
-        $user->assignRole($request->input('roles'));
-
-        
         try {
-                DB::connection('sqlsrv')->insert("INSERT INTO SEGURIDAD.USUARIO (usuario_id, nombre_usuario, apellidos, nombres, estado, fecha_actualizacion, terminal, fecha_registro, dni) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-                    $seguridad_usuario_id,
-                    $request->input('user_name'),
-                    $user->apellidos = $request->input('apellido_paterno') . ' ' . $request->input('apellido_materno'),
-                    $request->input('name'),
-                    1,
-                    $fecha = Carbon::now()->format('Y-m-d H:i:s'),
-                    $ipAddress = request()->ip(),
-                    $fecha = Carbon::now()->format('Y-m-d H:i:s'),
-                    $request->input('dni'),
-                ]);                
-            } catch (QueryException $e) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Error en la consulta a la base de datos.',
-                        'details' => $e->getMessage() // Quitar en producción si no es necesario.
-                    ], 500);
-            } catch (PDOException $e) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'No se pudo conectar a la base de datos.',
-                        'details' => $e->getMessage() // Quitar en producción si no es necesario.
-                    ], 500);
-            } catch (\Throwable $th) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Ocurrió un error inesperado.',
-                        'details' => $th->getMessage() // Quitar en producción si no es necesario.
-                    ], 500);
-            }
-        
-        return redirect()->route('usuarios.index');
+            // 🔹 Validaciones
+            $request->validate([
+                'name'             => 'required|string|max:255',
+                'apellido_paterno' => 'required|string|max:255',
+                'apellido_materno' => 'required|string|max:255',
+                'dni'              => 'required|string|max:20',
+                'user_name'        => 'required|string|max:255|unique:users,user_name',
+                'password'         => 'required|same:confirm-password',
+                'roles'            => 'required'
+            ]);
 
-        }catch(\Exception $e){
-            return redirect()->route('usuarios.index');
+            // 🔹 Crear usuario
+            $user = new User();
+            $user->name             = $request->input('name');
+            $user->apellido_paterno = $request->input('apellido_paterno');
+            $user->apellido_materno = $request->input('apellido_materno');
+            $user->dni              = $request->input('dni');
+            $user->user_name        = $request->input('user_name');
+            $user->password         = Hash::make($request->input('password'));
+            $user->save();
+
+            // 🔹 Asignar rol
+            $user->assignRole($request->input('roles'));
+
+            return redirect()->route('usuarios.index')
+                ->with('success', 'Usuario creado correctamente.');
+            
+        } catch (\Exception $e) {
+            return redirect()->route('usuarios.index')
+                ->with('error', 'Ocurrió un error al registrar el usuario.');
         }
     }
+
 
     public function updatePermissions(Request $request, $id)
     {
