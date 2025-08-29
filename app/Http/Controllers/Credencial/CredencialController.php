@@ -152,5 +152,6 @@ class CredencialController extends Controller
         return view('credencial.show', compact('socio'));
     }
 
+    
 
 }
